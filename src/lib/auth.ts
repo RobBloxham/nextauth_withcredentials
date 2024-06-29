@@ -1,5 +1,6 @@
 import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from "next-auth/providers/credentials"
+import GoogleProvider from "next-auth/providers/google"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { db } from './db'
 import bcrypt from 'bcrypt'
@@ -30,18 +31,35 @@ export const authOptions: NextAuthOptions = {
            if(!existingUser) {
             return null
            }
-           const passwordMatch = await bcrypt.compare(credentials.password, existingUser.password)
 
-           if(!passwordMatch) {
-            return null
+           if(existingUser.password) {
+            const passwordMatch = await bcrypt.compare(credentials.password, existingUser.password)
+            if(!passwordMatch) {
+             return null;
+            }
            }
+
+      
            return { 
             id: `${existingUser.id}`, 
             email: existingUser.email, 
             username: existingUser.username
           }
          }
+        }),
+        GoogleProvider({
+          clientId: process.env.GOOGLE_ID!,
+          clientSecret: process.env.GOOGLE_SECRET!,
+          allowDangerousEmailAccountLinking: true, // Allow automatic linking of users table to accounts table in database - not dangerous when used with OAuth providers that already perform email verification (like Google)
+          authorization: {
+            params: {
+              prompt: "consent",
+              access_type: "offline",
+              response_type: "code"
+            }
+          }
         })
+
       ],
       callbacks: {
         async jwt({token, user}) {

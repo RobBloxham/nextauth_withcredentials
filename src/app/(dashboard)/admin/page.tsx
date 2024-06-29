@@ -6,7 +6,7 @@ export default async function page() {
 
   if(session?.user) {
     return (
-      <h2 className='text-2xl'>Admin page - welcome back {session?.user.username}</h2>
+      <h2 className='text-2xl'>Admin page - welcome back {session?.user.name}</h2>
     )
   } else {
     return (
